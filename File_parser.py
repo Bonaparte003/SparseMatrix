@@ -1,41 +1,33 @@
 #!/usr/bin/env python3
+from classes import SparseMatrix
 
-"""A function that parses a file containing matrices and returns a list of matrices."""
 def parse_line(line):
     parts = line.strip('()').split(',')
     return [int(part.strip()) for part in parts]
 
-"""A function that reads two files containing matrices and returns a list of matrices."""
 def file_parser(file_path1, file_path2):
 
-    with open(file_path1, 'r') as f1:
-        data1 = f1.read().strip()
-    with open(file_path2, 'r') as f2:
-        data2 = f2.read().strip()
-    
-    rows1, columns1, rows2, columns2 = None, None, None, None
+    def parse_file(file_path):
+        rows, columns = None, None
+        parsed_lines = []
+        with open(file_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if 'row' in line or 'rows' in line:
+                    rows = int(line.split('=')[-1].strip())
+                elif 'col' in line or 'cols' in line:
+                    columns = int(line.split('=')[-1].strip())
+                elif line.startswith('('):
+                    parsed_lines.append(parse_line(line))
+        return parsed_lines, rows, columns
 
-    for line in data1.split('\n'):
-        if 'row' in line or 'rows' in line:
-            rows1 = int(line.split('=')[-1].strip())
-            break
-    for line in data1.split('\n'):
-        if 'col' in line or 'cols' in line:
-            columns1 = int(line.split('=')[-1].strip())
-            break
-    for line in data2.split('\n'):
-        if 'row' in line or 'rows' in line:
-            rows2 = int(line.split('=')[-1].strip())
-            break
-    for line in data2.split('\n'):
-        if 'col' in line or 'cols' in line:
-            columns2 = int(line.split('=')[-1].strip())
-    
+    parsed1, rows1, columns1 = parse_file(file_path1)
+    parsed2, rows2, columns2 = parse_file(file_path2)
 
-    parsed1 = [parse_line(line) for line in data1.split('\n') if line.startswith('(')]
-    parsed2 = [parse_line(line) for line in data2.split('\n') if line.startswith('(')]
-    
-    return parsed1, rows1, columns1, parsed2, rows2, columns2
+    matrix1 = SparseMatrix(parsed1, rows1, columns1)
+    matrix2 = SparseMatrix(parsed2, rows2, columns2)
+
+    return matrix1, matrix2
 
 '''Operations Checker'''
 def operaction_checker(Matrix1, Matrix2, operation):

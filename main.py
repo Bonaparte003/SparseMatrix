@@ -49,12 +49,6 @@ class SparseMatrixCmd(cmd.Cmd):
      └─ Supported ops: +, -, *
      └─ Example: opp * result.txt
 
-{Fore.YELLOW}3. ADVANCED FUNCTIONS{Style.RESET_ALL}
-   • {Fore.CYAN}csr{Style.RESET_ALL}
-     └─ Checks if the operation is possible first
-     └─ Perfoms matrix operation with the csr approach
-     └─ supported operations: +, -, *
-     └─ Example: csr + result.txt
 
    • {Fore.CYAN}t{Style.RESET_ALL} <output_file>
      └─ Transpose first matrix and save result to output_file
@@ -132,14 +126,11 @@ class SparseMatrixCmd(cmd.Cmd):
         print(f'{Fore.GREEN}✓ Result saved to {file_path}{Style.RESET_ALL}')
 
     def do_load(self, arg):
-        'Load matrices from two files: load <file_path1> <file_path2>'
+        'Load two matrices from specified files: load <file_path1> <file_path2>'
         try:
             file_path1, file_path2 = arg.split()
-            self.loading_animation()
-            parsed1, rows1, columns1, parsed2, rows2, columns2 = file_parser(file_path1, file_path2)
-            self.matrix1 = SparseMatrix(parsed1, rows1, columns1)
-            self.matrix2 = SparseMatrix(parsed2, rows2, columns2)
-            print(f'{Fore.GREEN}✓ Matrices loaded successfully.{Style.RESET_ALL}')
+            self.matrix1, self.matrix2 = file_parser(file_path1, file_path2)
+            print(f'{Fore.GREEN}✓ Matrices loaded successfully{Style.RESET_ALL}')
         except Exception as e:
             print(f'{Fore.RED}✗ Error loading matrices: {e}{Style.RESET_ALL}')
 
@@ -182,7 +173,7 @@ class SparseMatrixCmd(cmd.Cmd):
             operation, output_file = arg.split()
             if self.check(operation):
                 self.loading_animation()
-                ops = Operations(self.matrix1, self.matrix2, operation)
+                ops = Operations(self.matrix1, self.matrix2)
                 if operation == '+':
                     start_time = time.time()
                     result = ops.addition()
@@ -211,6 +202,12 @@ class SparseMatrixCmd(cmd.Cmd):
                 self.loading_animation()
                 transposed_matrix = self.matrix1.transpose()
                 self.print_matrix(transposed_matrix, "Transposed Matrix 1")
+                self.save_matrix_to_file(transposed_matrix, output_file)
+            
+            if self.matrix2:
+                self.loading_animation
+                transposed_matrix = self.matrix2.transpose()
+                self.print_matrix(transposed_matrix, "Transposed Matrix 2")
                 self.save_matrix_to_file(transposed_matrix, output_file)
             else:
                 print(f'{Fore.RED}✗ Matrix not loaded. Use the load command first.{Style.RESET_ALL}')
