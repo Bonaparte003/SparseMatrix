@@ -1,8 +1,11 @@
-# function to parse the data from the files into a list of tuples with integers
+#!/usr/bin/env python3
+
+"""A function that parses a file containing matrices and returns a list of matrices."""
 def parse_line(line):
-        # Remove the parentheses and split the line into parts
         parts = line.strip('()').split(',')
         return list(int(part) for part in parts)
+
+"""A function that reads two files containing matrices and returns a list of matrices."""
 def file_parser(file_path1, file_path2):
 
     with open(file_path1, 'r') as f1:
@@ -17,7 +20,7 @@ def file_parser(file_path1, file_path2):
 
 
 
-# operation checker
+'''Operations Checker'''
 def operaction_checker(Matrix1, Matrix2, operation):
     if operation == '+':
         if Matrix1.rows != Matrix2.rows or Matrix1.columns != Matrix2.columns:

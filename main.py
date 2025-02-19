@@ -5,7 +5,7 @@ import cmd
 import time
 from colorama import init, Fore, Back, Style
 
-# Initialize colorama for cross-platform colored output
+# Initialize colorama output
 init()
 
 def print_banner():
@@ -43,21 +43,18 @@ class SparseMatrixCmd(cmd.Cmd):
      └─ Display both loaded matrices
      └─ Shows formatted output with clear separation
 
-{Fore.YELLOW}2. MATRIX OPERATIONS{Style.RESET_ALL}
-   • {Fore.CYAN}check{Style.RESET_ALL} <operation>
-     └─ Verify if operation is possible
-     └─ Supported ops: +, -, *
-     └─ Example: check +
-
    • {Fore.CYAN}opp{Style.RESET_ALL} <operation>
+     └─ Checks if the operation is possible first
      └─ Perform matrix operation
      └─ Supported ops: +, -, *
      └─ Example: opp *
 
 {Fore.YELLOW}3. ADVANCED FUNCTIONS{Style.RESET_ALL}
    • {Fore.CYAN}csr{Style.RESET_ALL}
-     └─ Convert matrices to CSR format
-     └─ Shows row indices, column indices, and values
+     └─ Checks if the operation is possible first
+     └─ Perfoms matrix operation with the csr approach
+     └─ supported operations: +, -, *
+     └─ Example: csr +
 
    • {Fore.CYAN}t{Style.RESET_ALL}
      └─ Transpose first matrix
@@ -107,17 +104,17 @@ class SparseMatrixCmd(cmd.Cmd):
         self.matrix1 = None
         self.matrix2 = None
 
-    def loading_animation(self, duration=0.3):
+    def loading_animation(self, duration=0.2):
         """Display a loading animation"""
         chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
         for _ in range(10):
             for char in chars:
                 sys.stdout.write(f'\r{Fore.YELLOW}Processing {char}{Style.RESET_ALL}')
                 sys.stdout.flush()
-                time.sleep(duration/50)
+                time.sleep(duration/200)
         sys.stdout.write('\r' + ' ' * 20 + '\r')
 
-    def print_matrix(self, matrix, title):
+    def print_matrix(self, matrix, title, timer=0):
         """Pretty print a matrix with formatting"""
         print(f'\n{Fore.GREEN}{title}{Style.RESET_ALL}')
         print(f'{Fore.YELLOW}{"=" * (len(title) + 2)}{Style.RESET_ALL}')
@@ -125,6 +122,7 @@ class SparseMatrixCmd(cmd.Cmd):
             formatted_row = ' '.join(f'{Fore.CYAN}{val:4}{Style.RESET_ALL}' for val in row)
             print(formatted_row)
         print()
+        print(f'\n{Fore.GREEN} Time Took: {Style.RESET_ALL}{timer}{Style.RESET_ALL}')
 
     def do_load(self, arg):
         'Load matrices from two files: load <file_path1> <file_path2>'
@@ -178,39 +176,57 @@ class SparseMatrixCmd(cmd.Cmd):
             self.loading_animation()
             ops = Operations(self.matrix1, self.matrix2, operation)
             if operation == '+':
+                start_time = time.time()
                 result = ops.addition()
-                self.print_matrix(result, "Matrix 1 + Matrix 2")
+                self.print_matrix(result, "Matrix 1 + Matrix 2", time.time() - start_time )
             elif operation == '-':
+                start_time = time.time()
                 result = ops.subtraction()
-                self.print_matrix(result, "Matrix 1 - Matrix 2")
+                self.print_matrix(result, "Matrix 1 - Matrix 2", time.time() - start_time )
             elif operation == '*':
+                start_time = time.time()
                 result = ops.multiplication()
-                self.print_matrix(result, "Matrix 1 * Matrix 2")
-
+                self.print_matrix(result, "Matrix 1 * Matrix 2", time.time() - start_time )
+    
     def do_csr(self, arg):
-        'Convert matrices to CSR format: csr'
+        'Perform CSR operations on matrices: csr <operation>'
         try:
             if self.matrix1 and self.matrix2:
                 self.loading_animation()
                 csr1 = CsrOperator(self.matrix1)
                 csr2 = CsrOperator(self.matrix2)
-                row_index, column_index, value = csr1.zeros_remover()
+                row_index1, column_index1, value1 = csr1.zeros_remover()
                 row_index2, column_index2, value2 = csr2.zeros_remover()
                 
-                print(f"\n{Fore.CYAN}CSR Format - Matrix 1{Style.RESET_ALL}")
-                print(f"{Fore.YELLOW}{'=' * 25}{Style.RESET_ALL}")
-                print(f"{Fore.GREEN}Row:{Style.RESET_ALL} {row_index}")
-                print(f"{Fore.GREEN}Col:{Style.RESET_ALL} {column_index}")
-                print(f"{Fore.GREEN}Val:{Style.RESET_ALL} {value}")
+                operation = arg.strip()
+    
+                if self.check(operation):
                 
-                print(f"\n{Fore.CYAN}CSR Format - Matrix 2{Style.RESET_ALL}")
-                print(f"{Fore.YELLOW}{'=' * 25}{Style.RESET_ALL}")
-                print(f"{Fore.GREEN}Row:{Style.RESET_ALL} {row_index2}")
-                print(f"{Fore.GREEN}Col:{Style.RESET_ALL} {column_index2}")
-                print(f"{Fore.GREEN}Val:{Style.RESET_ALL} {value2}\n")
-            else:
-                print(f'{Fore.RED}✗ Matrices not loaded. Use the load command first.{Style.RESET_ALL}')
-        except AttributeError:
+                    if operation == '+':
+    
+                        ops = Operations(self.matrix1, self.matrix2, '+')
+                        start_time = time.time()
+                        result_row_index, result_column_index, result_value = ops.csr_addition(row_index1, column_index1, value1, row_index2, column_index2, value2)
+                        time_time = time.time() - start_time 
+                        matrix_result = csr1.from_csr(result_row_index, result_column_index, result_value)
+                        self.print_matrix(SparseMatrix(matrix_result), "CSR Addition Result", time_time)
+                    elif operation == '-':
+                        ops = Operations(self.matrix1, self.matrix2, '-')
+                        start_time = time.time()
+                        result_row_index, result_column_index, result_value = ops.csr_subtraction(row_index1, column_index1, value1, row_index2, column_index2, value2)
+                        time_time = time.time() - start_time 
+                        matrix_result = csr1.from_csr(result_row_index, result_column_index, result_value)
+                        self.print_matrix(SparseMatrix(matrix_result), "CSR Subtraction Result", time_time)
+                    elif operation == '*':
+                        ops = Operations(self.matrix1, self.matrix2, '*')
+                        start_time = time.time()
+                        result_row_index, result_column_index, result_value = ops.csr_multiplication(row_index1, column_index1, value1, row_index2, column_index2, value2)
+                        time_time = time.time() - start_time 
+                        matrix_result = csr1.from_csr(result_row_index, result_column_index, result_value)
+                        self.print_matrix(SparseMatrix(matrix_result), "CSR Multiplication Result", time_time)
+                    else:
+                        print(f'{Fore.RED}✗ Invalid operation. Use +, -, or *.{Style.RESET_ALL}')
+        except AttributeError as E:
             print(f'{Fore.RED}✗ Matrices not loaded. Use the load command first.{Style.RESET_ALL}')
 
     def do_t(self, arg):

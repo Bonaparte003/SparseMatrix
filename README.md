@@ -49,7 +49,7 @@ BX Operator is a command-line interface (CLI) tool designed for performing advan
     - `-`: Perform matrix subtraction
     - `*`: Perform matrix multiplication
     - `t`: Transpose the matrix
-    - `csr`: Convert the matrix to CSR format
+    - `csr <+/-/*>`: runs matrix operations with the csr approach
     - `help`: Display the help menu
     - `exit`: Exit the application
 
