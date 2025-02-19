@@ -27,6 +27,21 @@ class SparseMatrix:
                     row.pop()
                 if row:
                     f.write(f"({', '.join(map(str, row))})\n")
+                else:
+                    f.write("\n")
+    
+    def to_csr(self):
+        csr_matrix = {'data': [], 'indices': [], 'indptr': [0]}
+        for row in self.data:
+            for col, value in enumerate(row):
+                if value != 0:
+                    csr_matrix['data'].append(value)
+                    csr_matrix['indices'].append(col)
+            csr_matrix['indptr'].append(len(csr_matrix['data']))
+        # Ensure indptr has the correct length
+        while len(csr_matrix['indptr']) <= self.columns:
+            csr_matrix['indptr'].append(len(csr_matrix['data']))
+        return csr_matrix
 
 
 class Operations:
@@ -35,37 +50,76 @@ class Operations:
         self.matrix2 = matrix2
 
     def addition(self):
-        result = []
-        for i in range(max(self.matrix1.rows, self.matrix2.rows)):
-            row = []
-            for j in range(max(self.matrix1.columns, self.matrix2.columns)):
-                val1 = self.matrix1.data[i][j] if i < self.matrix1.rows and j < self.matrix1.columns and i < len(self.matrix1.data) and j < len(self.matrix1.data[i]) else 0
-                val2 = self.matrix2.data[i][j] if i < self.matrix2.rows and j < self.matrix2.columns and i < len(self.matrix2.data) and j < len(self.matrix2.data[i]) else 0
-                row.append(val1 + val2)
-            result.append(row)
-        return SparseMatrix(result, max(self.matrix1.rows, self.matrix2.rows), max(self.matrix1.columns, self.matrix2.columns))
-
-    def subtraction(self):
-        result = []
-        for i in range(max(self.matrix1.rows, self.matrix2.rows)):
-            row = []
-            for j in range(max(self.matrix1.columns, self.matrix2.columns)):
-                val1 = self.matrix1.data[i][j] if i < self.matrix1.rows and j < self.matrix1.columns and i < len(self.matrix1.data) and j < len(self.matrix1.data[i]) else 0
-                val2 = self.matrix2.data[i][j] if i < self.matrix2.rows and j < self.matrix2.columns and i < len(self.matrix2.data) and j < len(self.matrix2.data[i]) else 0
-                row.append(val1 - val2)
-            result.append(row)
-        return SparseMatrix(result, max(self.matrix1.rows, self.matrix2.rows), max(self.matrix1.columns, self.matrix2.columns))
-
-    def multiplication(self):
-        result = []
+        csr_matrix1 = self.matrix1.to_csr()
+        csr_matrix2 = self.matrix2.to_csr()
+    
+        result = [[0] * self.matrix2.columns for _ in range(self.matrix1.rows)]
+    
         for i in range(self.matrix1.rows):
-            row = []
-            for j in range(self.matrix2.columns):
-                element_sum = 0
-                for k in range(self.matrix1.columns):
-                    val1 = self.matrix1.data[i][k] if i < self.matrix1.rows and k < self.matrix1.columns and i < len(self.matrix1.data) and k < len(self.matrix1.data[i]) else 0
-                    val2 = self.matrix2.data[k][j] if k < self.matrix2.rows and j < self.matrix2.columns and k < len(self.matrix2.data) and j < len(self.matrix2.data[k]) else 0
-                    element_sum += val1 * val2
-                row.append(element_sum)
-            result.append(row)
+            row_start1 = csr_matrix1['indptr'][i]
+            row_end1 = csr_matrix1['indptr'][i + 1]
+            row_start2 = csr_matrix2['indptr'][i]
+            row_end2 = csr_matrix2['indptr'][i + 1]
+    
+            for j in range(row_start1, row_end1):
+                col = csr_matrix1['indices'][j]
+                val1 = csr_matrix1['data'][j]
+                result[i][col] += val1
+    
+            for j in range(row_start2, row_end2):
+                col = csr_matrix2['indices'][j]
+                val2 = csr_matrix2['data'][j]
+                result[i][col] += val2
+    
+        return SparseMatrix(result, self.matrix1.rows, self.matrix2.columns)
+    
+    def subtraction(self):
+        csr_matrix1 = self.matrix1.to_csr()
+        csr_matrix2 = self.matrix2.to_csr()
+    
+        result = [[0] * self.matrix2.columns for _ in range(self.matrix1.rows)]
+    
+        for i in range(self.matrix1.rows):
+            row_start1 = csr_matrix1['indptr'][i]
+            row_end1 = csr_matrix1['indptr'][i + 1]
+            row_start2 = csr_matrix2['indptr'][i]
+            row_end2 = csr_matrix2['indptr'][i + 1]
+    
+            for j in range(row_start1, row_end1):
+                col = csr_matrix1['indices'][j]
+                val1 = csr_matrix1['data'][j]
+                result[i][col] += val1
+    
+            for j in range(row_start2, row_end2):
+                col = csr_matrix2['indices'][j]
+                val2 = csr_matrix2['data'][j]
+                result[i][col] -= val2
+    
+        return SparseMatrix(result, self.matrix1.rows, self.matrix2.columns)
+
+    
+    def multiplication(self):
+        csr_matrix1 = self.matrix1.to_csr()
+        csr_matrix2 = self.matrix2.to_csr()
+    
+    
+        result = [[0] * self.matrix2.columns for _ in range(self.matrix1.rows)]
+    
+        for i in range(self.matrix1.rows):
+            row_start = csr_matrix1['indptr'][i]
+            row_end = csr_matrix1['indptr'][i + 1]
+            for j in range(row_start, row_end):
+                col = csr_matrix1['indices'][j]
+                val1 = csr_matrix1['data'][j]
+                if col < len(csr_matrix2['indptr']) - 1:
+                    col_start = csr_matrix2['indptr'][col]
+                    col_end = csr_matrix2['indptr'][col + 1]
+                    for k in range(col_start, col_end):
+                        if k < len(csr_matrix2['indices']) and csr_matrix2['indices'][k] < self.matrix2.columns:
+                            result[i][csr_matrix2['indices'][k]] += val1 * csr_matrix2['data'][k]
+                        else:
+                            print(f"      Skipping k={k} as it is out of range for csr_matrix2['indices']")
+                else:
+                    print(f"  Skipping col={col} as it is out of range for csr_matrix2['indptr']")
+    
         return SparseMatrix(result, self.matrix1.rows, self.matrix2.columns)
