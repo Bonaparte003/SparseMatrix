@@ -4,6 +4,9 @@
 
 BX Operator is a command-line interface (CLI) tool designed for performing advanced operations on sparse matrices. It supports loading matrices from files, performing various matrix operations, and displaying results in a user-friendly format.
 
+BX Operator have the ability to run the operations in 2 different algorithms for both Compressed Sparese Row and the normal way of going through every row.
+
+
 
 ## Features
 
