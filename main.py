@@ -39,10 +39,6 @@ class SparseMatrixCmd(cmd.Cmd):
      └─ Load two matrices from specified files
      └─ Example: load matrix1.txt matrix2.txt
 
-   • {Fore.CYAN}show{Style.RESET_ALL}
-     └─ Display both loaded matrices
-     └─ Shows formatted output with clear separation
-
    • {Fore.CYAN}opp{Style.RESET_ALL} <operation> <output_file>
      └─ Checks if the operation is possible first
      └─ Perform matrix operation and save result to output_file
@@ -50,9 +46,6 @@ class SparseMatrixCmd(cmd.Cmd):
      └─ Example: opp * result.txt
 
 
-   • {Fore.CYAN}t{Style.RESET_ALL} <output_file>
-     └─ Transpose first matrix and save result to output_file
-     └─ Displays the transposed result
 
 {Fore.YELLOW}4. SYSTEM COMMANDS{Style.RESET_ALL}
    • {Fore.CYAN}help{Style.RESET_ALL}
@@ -67,6 +60,8 @@ class SparseMatrixCmd(cmd.Cmd):
 • Each line represents a row in the matrix
 • All rows must have the same number of columns
 • Example format:
+  rows=10
+  cols=10
   (1, 0, 0)
   (0, 1, 0)
   (0, 0, 1)
@@ -108,22 +103,16 @@ class SparseMatrixCmd(cmd.Cmd):
                 time.sleep(duration/200)
         sys.stdout.write('\r' + ' ' * 20 + '\r')
 
-    def print_matrix(self, matrix, title, timer=0):
+    def print_matrix(self, timer=0):
         """Pretty print a matrix with formatting"""
-        print(f'\n{Fore.GREEN}{title}{Style.RESET_ALL}')
-        print(f'{Fore.YELLOW}{"=" * (len(title) + 2)}{Style.RESET_ALL}')
-        for row in matrix.data:
-            formatted_row = ' '.join(f'{Fore.CYAN}{val:4}{Style.RESET_ALL}' for val in row)
-            print(formatted_row)
-        print()
         print(f'\n{Fore.GREEN} Time Took: {Style.RESET_ALL}{timer}{Style.RESET_ALL}')
 
+    
     def save_matrix_to_file(self, matrix, file_path):
         """Save a matrix to a specified file"""
-        with open(file_path, 'w') as f:
-            for row in matrix.data:
-                f.write(' '.join(map(str, row)) + '\n')
+        matrix.save_to_file(file_path)
         print(f'{Fore.GREEN}✓ Result saved to {file_path}{Style.RESET_ALL}')
+    
 
     def do_load(self, arg):
         'Load two matrices from specified files: load <file_path1> <file_path2>'
@@ -134,16 +123,6 @@ class SparseMatrixCmd(cmd.Cmd):
         except Exception as e:
             print(f'{Fore.RED}✗ Error loading matrices: {e}{Style.RESET_ALL}')
 
-    def do_show(self, arg):
-        'Show the loaded matrices: show'
-        try:
-            if self.matrix1 and self.matrix2:
-                self.print_matrix(self.matrix1, "Matrix 1")
-                self.print_matrix(self.matrix2, "Matrix 2")
-            else:
-                print(f'{Fore.RED}✗ Matrices not loaded. Use the load command first.{Style.RESET_ALL}')
-        except AttributeError:
-            print(f'{Fore.RED}✗ Matrices not loaded. Use the load command first.{Style.RESET_ALL}')
 
     def check(self, arg):
         'Check if an operation can be performed on the matrices: check <operation>'
@@ -177,44 +156,22 @@ class SparseMatrixCmd(cmd.Cmd):
                 if operation == '+':
                     start_time = time.time()
                     result = ops.addition()
-                    self.print_matrix(result, "Matrix 1 + Matrix 2", time.time() - start_time)
+                    self.print_matrix(time.time() - start_time)
                     self.save_matrix_to_file(result, output_file)
                 elif operation == '-':
                     start_time = time.time()
                     result = ops.subtraction()
-                    self.print_matrix(result, "Matrix 1 - Matrix 2", time.time() - start_time)
+                    self.print_matrix(time.time() - start_time)
                     self.save_matrix_to_file(result, output_file)
                 elif operation == '*':
                     start_time = time.time()
                     result = ops.multiplication()
-                    self.print_matrix(result, "Matrix 1 * Matrix 2", time.time() - start_time)
+                    self.print_matrix(time.time() - start_time)
                     self.save_matrix_to_file(result, output_file)
         except ValueError:
             print(f'{Fore.RED}✗ Invalid arguments. Usage: opp <operation> <output_file>{Style.RESET_ALL}')
         except Exception as e:
             print(f'{Fore.RED}✗ Error performing operation: {e}{Style.RESET_ALL}')
-
-    def do_t(self, arg):
-        'Transpose the first loaded matrix: t <output_file>'
-        try:
-            output_file = arg.strip()
-            if self.matrix1:
-                self.loading_animation()
-                transposed_matrix = self.matrix1.transpose()
-                self.print_matrix(transposed_matrix, "Transposed Matrix 1")
-                self.save_matrix_to_file(transposed_matrix, output_file)
-            
-            if self.matrix2:
-                self.loading_animation
-                transposed_matrix = self.matrix2.transpose()
-                self.print_matrix(transposed_matrix, "Transposed Matrix 2")
-                self.save_matrix_to_file(transposed_matrix, output_file)
-            else:
-                print(f'{Fore.RED}✗ Matrix not loaded. Use the load command first.{Style.RESET_ALL}')
-        except AttributeError:
-            print(f'{Fore.RED}✗ Matrix not loaded. Use the load command first.{Style.RESET_ALL}')
-        except Exception as e:
-            print(f'{Fore.RED}✗ Error transposing matrix: {e}{Style.RESET_ALL}')
 
     def do_exit(self, arg):
         'Exit the CLI: exit'

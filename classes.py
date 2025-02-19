@@ -22,7 +22,11 @@ class SparseMatrix:
             f.write(f"rows={self.rows}\n")
             f.write(f"cols={self.columns}\n")
             for row in self.data:
-                f.write(" ".join(map(str, row)) + "\n")
+                # Remove trailing zeros
+                while row and row[-1] == 0:
+                    row.pop()
+                if row:
+                    f.write(f"({', '.join(map(str, row))})\n")
 
 
 class Operations:
@@ -65,6 +69,3 @@ class Operations:
                 row.append(element_sum)
             result.append(row)
         return SparseMatrix(result, self.matrix1.rows, self.matrix2.columns)
-
-    def save_result_to_file(self, result_matrix, filename):
-        result_matrix.save_to_file(filename)

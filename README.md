@@ -44,12 +44,9 @@ BX Operator is a command-line interface (CLI) tool designed for performing advan
     ```
 2. Use the following commands to interact with the tool:
     - `load <file_path1> <file_path2>`: Load two matrices from specified files
-    - `show`: Display the loaded matrices
-    - `+`: Perform matrix addition
-    - `-`: Perform matrix subtraction
-    - `*`: Perform matrix multiplication
-    - `t`: Transpose the matrix
-    - `csr <+/-/*>`: runs matrix operations with the csr approach
+    - `opp + <file_output.txt>`: Perform matrix addition
+    - `opp - <file_output.txt>`: Perform matrix subtraction
+    - `opp * <file_output.txt>`: Perform matrix multiplication
     - `help`: Display the help menu
     - `exit`: Exit the application
 
@@ -61,6 +58,8 @@ BX Operator is a command-line interface (CLI) tool designed for performing advan
 - All rows must have the same number of columns
 - Example format:
     ```
+    rows=10
+    cols=10
     (1 0 0)
     (0 1 0)
     (0 0 1)
@@ -76,12 +75,3 @@ BX Operator is a command-line interface (CLI) tool designed for performing advan
 ## Contributing
 
 Contributions are welcome! Please fork the repository and submit a pull request.
-
-## DEMO
-
-![BX Operator](images/1.png)
-![Matrix Operations](images/2.png)
-![Matrix Addition](images/3.png)
-![CLI Usage](images/5.png)
-![File Format](images/6.png)
-![Error Handling](images/7.png)
