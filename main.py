@@ -1,5 +1,5 @@
 from File_parser import file_parser, operaction_checker
-from classes import SparseMatrix, CsrOperator, Operations
+from classes import SparseMatrix, Operations
 import sys
 import cmd
 import time
@@ -129,9 +129,9 @@ class SparseMatrixCmd(cmd.Cmd):
         try:
             file_path1, file_path2 = arg.split()
             self.loading_animation()
-            parsed1, parsed2 = file_parser(file_path1, file_path2)
-            self.matrix1 = SparseMatrix(parsed1)
-            self.matrix2 = SparseMatrix(parsed2)
+            parsed1, rows1, columns1, parsed2, rows2, columns2 = file_parser(file_path1, file_path2)
+            self.matrix1 = SparseMatrix(parsed1, rows1, columns1)
+            self.matrix2 = SparseMatrix(parsed2, rows2, columns2)
             print(f'{Fore.GREEN}✓ Matrices loaded successfully.{Style.RESET_ALL}')
         except Exception as e:
             print(f'{Fore.RED}✗ Error loading matrices: {e}{Style.RESET_ALL}')
@@ -187,47 +187,7 @@ class SparseMatrixCmd(cmd.Cmd):
                 start_time = time.time()
                 result = ops.multiplication()
                 self.print_matrix(result, "Matrix 1 * Matrix 2", time.time() - start_time )
-    
-    def do_csr(self, arg):
-        'Perform CSR operations on matrices: csr <operation>'
-        try:
-            if self.matrix1 and self.matrix2:
-                self.loading_animation()
-                csr1 = CsrOperator(self.matrix1)
-                csr2 = CsrOperator(self.matrix2)
-                row_index1, column_index1, value1 = csr1.zeros_remover()
-                row_index2, column_index2, value2 = csr2.zeros_remover()
-                
-                operation = arg.strip()
-    
-                if self.check(operation):
-                
-                    if operation == '+':
-    
-                        ops = Operations(self.matrix1, self.matrix2, '+')
-                        start_time = time.time()
-                        result_row_index, result_column_index, result_value = ops.csr_addition(row_index1, column_index1, value1, row_index2, column_index2, value2)
-                        time_time = time.time() - start_time 
-                        matrix_result = csr1.from_csr(result_row_index, result_column_index, result_value)
-                        self.print_matrix(SparseMatrix(matrix_result), "CSR Addition Result", time_time)
-                    elif operation == '-':
-                        ops = Operations(self.matrix1, self.matrix2, '-')
-                        start_time = time.time()
-                        result_row_index, result_column_index, result_value = ops.csr_subtraction(row_index1, column_index1, value1, row_index2, column_index2, value2)
-                        time_time = time.time() - start_time 
-                        matrix_result = csr1.from_csr(result_row_index, result_column_index, result_value)
-                        self.print_matrix(SparseMatrix(matrix_result), "CSR Subtraction Result", time_time)
-                    elif operation == '*':
-                        ops = Operations(self.matrix1, self.matrix2, '*')
-                        start_time = time.time()
-                        result_row_index, result_column_index, result_value = ops.csr_multiplication(row_index1, column_index1, value1, row_index2, column_index2, value2)
-                        time_time = time.time() - start_time 
-                        matrix_result = csr1.from_csr(result_row_index, result_column_index, result_value)
-                        self.print_matrix(SparseMatrix(matrix_result), "CSR Multiplication Result", time_time)
-                    else:
-                        print(f'{Fore.RED}✗ Invalid operation. Use +, -, or *.{Style.RESET_ALL}')
-        except AttributeError as E:
-            print(f'{Fore.RED}✗ Matrices not loaded. Use the load command first.{Style.RESET_ALL}')
+
 
     def do_t(self, arg):
         'Transpose the first loaded matrix: t'
